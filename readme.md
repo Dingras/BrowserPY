@@ -1,6 +1,6 @@
 # BrowserPY
 
-![BrowserPY Screenshot](https://github.com/Dingras/image/image.png)
+![BrowserPY Screenshot](https://github.com/Dingras/BrowserPY/blob/main/image/image.png?raw=true)
 
 BrowserPY es un navegador web simple hecho en Python usando PySide6.
 
@@ -42,7 +42,7 @@ BrowserPY es un navegador web simple hecho en Python usando PySide6.
 
 Ejecuta el navegador con el siguiente comando:
 ```bash
-    python main.py
+python main.py
 ```
 
 ## Contribuciones
