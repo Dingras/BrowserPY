@@ -2,6 +2,8 @@ from PySide6.QtWidgets import QLineEdit, QPushButton, QComboBox, QWidget, QHBoxL
 from PySide6.QtGui import QKeyEvent, QIcon
 from PySide6.QtCore import Qt, Signal
 from assets.constants import suffixes
+import re
+from urllib.parse import urlparse
 
 class SearchInput(QLineEdit):
 
@@ -20,11 +22,25 @@ class SearchInput(QLineEdit):
                 url = '+'.join(url)
                 seeker = self.parent().search_selector.currentData()
 
-                if not url.endswith(suffixes.valid_suffixes):
+                # Verificar si es localhost o IP con esquema válido
+                ip_pattern = r'^(\d{1,3}\.){3}\d{1,3}(:\d+)?(/.*)?$'  # IPv4 con puerto y opcional ruta
+                ipv6_pattern = r'^\[?([a-fA-F0-9:]+)\]?(?::\d+)?(/.*)?$'  # IPv6 con puerto y opcional ruta
+
+                parsed_url = urlparse(url)
+                is_localhost = (
+                    parsed_url.hostname == "localhost" or
+                    re.match(ip_pattern, url) or
+                    re.match(ipv6_pattern, url)
+                )
+
+                if not (
+                    url.endswith(suffixes.valid_suffixes)
+                    or is_localhost
+                ):
                     url = f'{seeker}/search?q={url}'
 
                 if not url.startswith('http://') and not url.startswith('https://'):
-                    url = f'https://www.{url}'
+                    url = f'https://{url}'
 
                 self.url_entered.emit(url)
             else:
