@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QLineEdit, QPushButton, QComboBox, QWidget, QHBoxLayout
 from PySide6.QtGui import QKeyEvent, QIcon
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QUrl
 from assets.constants import suffixes
 import re
 from urllib.parse import urlparse
@@ -12,42 +12,63 @@ class SearchInput(QLineEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         
-        self.setPlaceholderText('Busca o ingresa una direccion URL')
+        self.setPlaceholderText('Busca o ingresa una dirección URL')
+        self.setAlignment(Qt.AlignLeft)
+        self.editing = False
         self.show()
 
+    def focusInEvent(self, event):
+        self.editing = True
+        super().focusInEvent(event)
+        self.setCursorPosition(len(self.text()))  # Cursor al final al editar
+
+    def focusOutEvent(self, event):
+        self.editing = False
+        super().focusOutEvent(event)
+
     def keyPressEvent(self, event: QKeyEvent):
+        self.editing = True
         try:
             if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-                url = self.text().split()
-                url = '+'.join(url)
-                seeker = self.parent().search_selector.currentData()
+                original_text = self.text().strip()
+                search_engine = self.parent().search_selector.currentData()
+                processed_url = self.process_input(original_text, search_engine)
 
-                # Verificar si es localhost o IP con esquema válido
-                ip_pattern = r'^(\d{1,3}\.){3}\d{1,3}(:\d+)?(/.*)?$'  # IPv4 con puerto y opcional ruta
-                ipv6_pattern = r'^\[?([a-fA-F0-9:]+)\]?(?::\d+)?(/.*)?$'  # IPv6 con puerto y opcional ruta
+                self.url_entered.emit(processed_url)
+                self.editing = False
+            
+            super().keyPressEvent(event)
 
-                parsed_url = urlparse(url)
-                is_localhost = (
-                    parsed_url.hostname == "localhost" or
-                    re.match(ip_pattern, url) or
-                    re.match(ipv6_pattern, url)
-                )
-
-                if not (
-                    url.endswith(suffixes.valid_suffixes)
-                    or is_localhost
-                ):
-                    url = f'{seeker}/search?q={url}'
-
-                if not url.startswith('http://') and not url.startswith('https://'):
-                    url = f'https://{url}'
-
-                self.url_entered.emit(url)
-            else:
-                super().keyPressEvent(event)
         except Exception as e:
-            print(e)
+            print(f"Error en entrada: {e}")
 
+    def process_input(self, text : str, search_engine : str ) -> str:
+
+        ip_pattern = r'^(\d{1,3}\.){3}\d{1,3}(:\d+)?(/.*)?$'
+        ipv6_pattern = r'^\[?([a-fA-F0-9:]+)\]?(?::\d+)?(/.*)?$'
+        domain_pattern = r'^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(/\S*)?$'
+
+        is_valid_url = (
+            text.startswith(('http://', 'https://')) or
+            re.match(ip_pattern, text) or
+            re.match(ipv6_pattern, text) or
+            re.match(domain_pattern, text) or
+            text.lower() == 'localhost'
+        )
+
+        if is_valid_url:
+            return self.ensure_scheme(text)
+        else:
+            return self.build_search_url(text, search_engine)
+
+    def ensure_scheme(self, url: str) -> str:
+        if not url.startswith(('http://', 'https://')):
+            return f'https://{url}'
+        return url
+    
+    def build_search_url(self, query: str, engine: str) -> str:
+        encoded_query = query.replace(' ', '+')
+        return f'{engine}/search?q={encoded_query}'
 
 class BackHistoryButton(QPushButton):
 
