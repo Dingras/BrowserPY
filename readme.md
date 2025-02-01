@@ -45,6 +45,18 @@ Ejecuta el navegador con el siguiente comando:
 python main.py
 ```
 
+## Crear un Ejecutable
+
+Si deseas crear un ejecutable, sigue estos pasos después de instalar las dependencias:
+
+1. Ejecuta el archivo setup.py:
+```bash
+python setup.py build
+```
+2. Se creará un directorio `build` que contendrá todos los archivos necesarios para ejecutar la aplicación.
+
+3. Dentro del directorio `build`, encontrarás el archivo `main.exe` (o su equivalente para tu sistema). Haz doble clic en él para iniciar BrowserPY.
+
 ## Contribuciones
 
 ¡Las contribuciones son bienvenidas! Por favor, abre un issue o un pull request para discutir cualquier cambio que te gustaría hacer.
