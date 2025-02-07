@@ -94,15 +94,37 @@ class SearchSelector(QComboBox):
         self.show()
 
 
+class StarButton(QPushButton):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setIcon(QIcon("assets/images/star.png")) # Ruta del ícono de estrella
+        self.setText("")
+        self.setFixedSize(32, 32)
+        self.setIconSize(self.size())
+
+        # Opcional: Estilo visual (redondeado)
+        self.setStyleSheet("""
+            QPushButton {
+                border: none;
+                background-color: transparent;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.2);
+                border-radius: 16px;
+            }
+        """)
+
 class Navbar(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setFixedHeight(50)
 
         self.search_input = SearchInput(self)
         self.back_history_button = BackHistoryButton(self)
         self.forward_history_button = ForwardHistoryButton(self)
         self.search_selector = SearchSelector(self)
+        self.favorite_button = StarButton(self)
         
 
         self.layout_h = QHBoxLayout()
@@ -111,3 +133,4 @@ class Navbar(QWidget):
         self.layout_h.addWidget(self.forward_history_button)
         self.layout_h.addWidget(self.search_selector)
         self.layout_h.addWidget(self.search_input)
+        self.layout_h.addWidget(self.favorite_button)
