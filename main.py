@@ -1,8 +1,11 @@
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout 
 from PySide6.QtWidgets import QInputDialog, QLineEdit  
-from PySide6.QtGui import QIcon    
+from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt
+from PySide6.QtWebEngineCore import QWebEngineProfile
 from components.browser_window import BrowserWindow
+from PySide6.QtWebEngineCore import QWebEngineSettings
 from components.fav_bar import FavBar
 from components.navbar import Navbar
 
@@ -24,6 +27,19 @@ class MainWindow(QMainWindow):
 
         ## Ventana del navegador (Creación de objeto)
         self.browser_window = BrowserWindow(self)
+        
+        ## Ventana del nevegador (Configuración)
+        settings = self.browser_window.settings()
+        settings.setAttribute(QWebEngineSettings.PluginsEnabled, True)
+        settings.setAttribute(QWebEngineSettings.AutoLoadImages, True)
+        settings.setAttribute(QWebEngineSettings.JavascriptEnabled, True)
+        settings.setAttribute(QWebEngineSettings.FullScreenSupportEnabled, True)
+        settings.setAttribute(QWebEngineSettings.PlaybackRequiresUserGesture, False)
+        settings.setAttribute(QWebEngineSettings.WebGLEnabled, True)
+        settings.setAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled, True)
+        
+        ## Manejo de eventos de pantalla completa
+        self.browser_window.page().fullScreenRequested.connect(self.handle_fullscreen)
         
         ## Barra de favoritos
         self.favbar = FavBar(self,load_url_callback=self.browser_window.load_url)
@@ -74,6 +90,14 @@ class MainWindow(QMainWindow):
             self.browser_window.save_favorite_url(name, current_url)
             self.favbar.load_favorites()
 
+    def handle_fullscreen(self, request):
+        request.accept()
+        if request.toggleOn():
+            self.browser_window.setWindowFlags(Qt.Window)
+            self.browser_window.showFullScreen()
+        else:
+            self.browser_window.setWindowFlags(Qt.Widget)
+            self.browser_window.showNormal()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
